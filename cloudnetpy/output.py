@@ -228,7 +228,10 @@ def add_source_attribute(attributes: dict, data: dict):
         "model": ("uwind", "vwind", "Tw", "q", "pressure", "temperature"),
     }
     for instrument, keys in variables.items():
-        source = data[instrument].dataset.source
+        try:
+            source = data[instrument].dataset.source
+        except AttributeError:
+            source = data[instrument].dataset.Source
         for key in keys:
             if key in attributes:
                 attributes[key] = attributes[key]._replace(source=source)
