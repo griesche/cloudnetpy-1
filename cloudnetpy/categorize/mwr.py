@@ -4,6 +4,7 @@ import numpy as np
 from cloudnetpy import utils
 from cloudnetpy.datasource import DataSource
 
+KG_TO_G = 1000.
 
 class Mwr(DataSource):
     """Microwave radiometer class, child of DataSource.
@@ -29,7 +30,18 @@ class Mwr(DataSource):
             array.rebin_data(self.time, time_grid)
 
     def _init_lwp_data(self) -> None:
-        lwp = self.dataset.variables["lwp"][:]
+        #### Hannes
+        #lwp = self.dataset.variables["lwp"][:]
+        try:
+            lwp = self.dataset.variables["lwp"][:]
+        except KeyError:
+            try: 
+                lwp = self.dataset.variables["clwvi"][:]
+                if self.dataset.variables['clwvi'].units == "kg m-2":
+                    lwp = lwp*KG_TO_G # convert kg to g
+            except KeyError:
+                print('no lwp data found')
+        ####
         self.append_data(lwp, "lwp")
 
     def _init_lwp_error(self) -> None:

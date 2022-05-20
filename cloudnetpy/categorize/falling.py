@@ -49,7 +49,7 @@ def _find_cold_aerosols(obs: ClassData, is_liquid: np.ndarray) -> np.ndarray:
     This method should be improved in the future if possible.
     """
     cold_aerosols = np.zeros(is_liquid.shape, dtype=bool)
-    temperature_limit = T0 - 15
+    temperature_limit = T0 - 35 # 15 # too high for the arctic....better use also lidar depol for ice identification
     is_beta = ~obs.beta.mask
     ind = np.where((obs.tw.data < temperature_limit) & is_beta & ~is_liquid)
     cold_aerosols[ind] = True

@@ -286,6 +286,9 @@ class Radar(DataSource):
 
     def _get_folding_velocity(self) -> Union[np.ndarray, float]:
         if "nyquist_velocity" in self.dataset.variables:
+            if all(np.diff(self.getvar("nyquist_velocity"))==0):
+                # KAZR gives nyquist velocity as array but has only one sequence and one folding velocity
+                return self.getvar("nyquist_velocity")[0]
             return self.getvar("nyquist_velocity")
         if "prf" in self.dataset.variables:
             prf = self.getvar("prf")

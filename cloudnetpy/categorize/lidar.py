@@ -18,7 +18,7 @@ class Lidar(DataSource):
 
     def __init__(self, full_path: str):
         super().__init__(full_path)
-        self.append_data(self.getvar("beta"), "beta")
+        self.append_data(self.getvar("beta_532_nr"), "beta")  # below 3 km: use 532 near range data
         self._add_meta()
 
     def interpolate_to_grid(self, time_new: np.ndarray, height_new: np.ndarray) -> list:

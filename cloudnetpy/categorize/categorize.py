@@ -5,6 +5,7 @@ from cloudnetpy import output, utils
 from cloudnetpy.categorize import atmos, classify
 from cloudnetpy.categorize.lidar import Lidar
 from cloudnetpy.categorize.model import Model
+from cloudnetpy.categorize.radiosonde import Radiosonde
 from cloudnetpy.categorize.mwr import Mwr
 from cloudnetpy.categorize.radar import Radar
 from cloudnetpy.metadata import MetaData
@@ -98,7 +99,6 @@ def generate_categorize(input_files: dict, output_file: str, uuid: Optional[str]
     def _close_all():
         for obj in data.values():
             obj.close()
-
     try:
         data = {
             "radar": Radar(input_files["radar"]),
@@ -106,7 +106,10 @@ def generate_categorize(input_files: dict, output_file: str, uuid: Optional[str]
             "mwr": Mwr(input_files["mwr"]),
         }
         assert data["radar"].altitude is not None
-        data["model"] = Model(input_files["model"], data["radar"].altitude)
+        if "model" in input_files.keys():
+            data["model"] = Model(input_files["model"], data["radar"].altitude)
+        if "radiosonde" in input_files.keys():
+            data["model"] = Radiosonde(input_files["radiosonde"], data["radar"].altitude)
         time, height = _define_dense_grid()
         valid_ind = _interpolate_to_cloudnet_grid()
         _screen_bad_time_indices(valid_ind)
