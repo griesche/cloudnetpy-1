@@ -17,7 +17,7 @@ POLLYXT = Instrument(
     domain="lidar",
     category="Raman lidar",
     model="PollyXT",
-    wavelength=1064.0,
+    wavelength=  1064.0,
 )
 
 CL51 = Instrument(
@@ -46,6 +46,10 @@ CHM15KX = Instrument(
 
 MIRA35 = Instrument(
     manufacturer="METEK", domain="radar", category="cloud radar", model="MIRA-35", frequency=35.5
+)
+
+KAZR = Instrument(
+    manufacturer="ARM", domain="radar", category="cloud radar", model="KAZR", frequency=35.6
 )
 
 FMCW94 = Instrument(
