@@ -33,7 +33,7 @@ def add_radar_specific_variables(obj):
     possible_nyquist_names = ("ambiguous_velocity", "NyquistVelocity" ,"nyquist_velocity")
     data = obj.getvar(*possible_nyquist_names)
     key = "nyquist_velocity"
-    if max(np.diff(np.array(data))) == 0:  # kazr stores nyquist velocity as array, no matter if burst or chirp mode
+    if max(np.diff(np.array(data))) == 0:  # KAZR stores nyquist velocity as array but has only one sequence and one folding velocity no matter if burst or chirp mode
         data = data[0]
     obj.data[key] = CloudnetArray(np.array(data), key)
 
