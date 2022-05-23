@@ -223,7 +223,7 @@ def add_source_attribute(attributes: dict, data: dict):
             "nyquist_velocity",
             "rain_rate",
         ),
-        "lidar": ("beta", "lidar_wavelength"),
+        "lidar": ("beta", "lidar_depolarization", "lidar_wavelength"),
         "mwr": ("lwp",),
         "model": ("uwind", "vwind", "Tw", "q", "pressure", "temperature"),
     }
