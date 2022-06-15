@@ -66,6 +66,9 @@ def kazr2nc(
         "prt": "prt",
         "nyquist_velocity": "nyquist_velocity",
     }
+
+    calibration_offset = 1 # kazr_ge = 1 , kazr_md = 6
+
     if os.path.isdir(raw_kazr):
         temp_file = NamedTemporaryFile()  # pylint: disable=R1732
         nc_filename = temp_file.name
@@ -89,6 +92,7 @@ def kazr2nc(
     kazr.mask_invalid_data()
     kazr.add_time_and_range()
     kazr.remove_lowest_two_rangegates()
+    kazr.calibrate_Z(calibration_offset)
     general.add_site_geolocation(kazr)
     general.add_radar_specific_variables(kazr)
     valid_indices = kazr.add_solar_angles()
@@ -133,6 +137,9 @@ class Kazr(NcRadar):
         ind = self.time.argsort()
         self._screen_by_ind(ind)
 
+    def calibrate_Z(self,cal_offset: int):
+        self.data["Zh"].data = self.data["Zh"].data.__radd__(cal_offset)
+
     def remove_duplicate_timestamps(self):
         """Removes duplicate timestamps."""
         _, ind = np.unique(self.time, return_index=True)
@@ -172,6 +179,7 @@ class Kazr(NcRadar):
             if cloudnet_array.data.ndim == 2:
                 cloudnet_array.mask_indices(z_mask)
                 cloudnet_array.mask_indices(v_mask)
+
     def add_solar_angles(self) -> list:
         """Adds solar zenith and azimuth angles and returns valid time indices."""
         elevation = self.data["elevation"].data
