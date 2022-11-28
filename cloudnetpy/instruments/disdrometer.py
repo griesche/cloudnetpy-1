@@ -1,4 +1,5 @@
 """Module for reading / converting disdrometer data."""
+import logging
 from typing import List, Optional, Union
 
 import numpy as np
@@ -6,6 +7,7 @@ from numpy import ma
 
 from cloudnetpy import CloudnetArray, output, utils
 from cloudnetpy.exceptions import DisdrometerDataError, ValidTimeStampError
+from cloudnetpy.instruments import instruments
 from cloudnetpy.instruments.cloudnet_instrument import CloudnetInstrument
 from cloudnetpy.instruments.vaisala import values_to_dict
 from cloudnetpy.metadata import MetaData
@@ -62,7 +64,8 @@ def disdrometer2nc(
     disdrometer.convert_units()
     attributes = output.add_time_attribute(ATTRIBUTES, disdrometer.date)
     output.update_attributes(disdrometer.data, attributes)
-    return save_disdrometer(disdrometer, output_file, uuid)
+    uuid = output.save_level1b(disdrometer, output_file, uuid)
+    return uuid
 
 
 class Disdrometer(CloudnetInstrument):
@@ -149,7 +152,15 @@ class Disdrometer(CloudnetInstrument):
         for key in keys:
             if key.startswith("_"):
                 continue
-            float_array = np.array([float(value) for value in data_dict[key]])
+            invalid_value = -9999.0
+            float_array = ma.array([])
+            for value_str in data_dict[key]:
+                try:
+                    float_array = ma.append(float_array, float(value_str))
+                except ValueError:
+                    logging.warning(f"Invalid character: {value_str}, masking a data point")
+                    float_array = ma.append(float_array, invalid_value)
+            float_array[float_array == invalid_value] = ma.masked
             self.data[key] = CloudnetArray(float_array, key)
         self.data["time"] = self._convert_time(data_dict)
         if "_sensor_id" in data_dict:
@@ -224,6 +235,7 @@ class Parsivel(Disdrometer):
         self.date = self._init_date()
         self._create_velocity_vectors()
         self._create_diameter_vectors()
+        self.instrument = instruments.PARSIVEL2
 
     def init_data(self):
         """
@@ -290,6 +302,7 @@ class Thies(Disdrometer):
         self.date = self._init_date()
         self._create_velocity_vectors()
         self._create_diameter_vectors()
+        self.instrument = instruments.THIES
 
     def init_data(self):
         """According to https://www.biral.com/wp-content/uploads/2015/01/5.4110.xx_.xxx_.pdf"""
@@ -361,31 +374,6 @@ class Thies(Disdrometer):
         n_values = [3, 6, 13]
         spreads = [0.125, 0.25, 0.5]
         self._store_vectors(n_values, spreads, "diameter", start=0.125)
-
-
-def save_disdrometer(
-    disdrometer: Union[Parsivel, Thies], output_file: str, uuid: Union[str, None]
-) -> str:
-    """Saves disdrometer file."""
-    dims = {
-        "time": len(disdrometer.data["time"][:]),
-        "diameter": disdrometer.n_diameter,
-        "velocity": disdrometer.n_velocity,
-        "nv": 2,
-    }
-    file_type = "disdrometer"
-    with output.init_file(output_file, dims, disdrometer.data, uuid) as rootgrp:
-        file_uuid = rootgrp.file_uuid
-        rootgrp.cloudnet_file_type = file_type
-        rootgrp.title = f"{file_type.capitalize()} file from {disdrometer.site_meta['name']}"
-        rootgrp.year, rootgrp.month, rootgrp.day = disdrometer.date
-        rootgrp.location = disdrometer.site_meta["name"]
-        rootgrp.history = f"{utils.get_time()} - {file_type} file created"
-        rootgrp.source = disdrometer.source
-        if disdrometer.sensor_id is not None:
-            rootgrp.sensor_id = disdrometer.sensor_id
-        rootgrp.references = output.get_references()
-    return file_uuid
 
 
 def _parse_parsivel_timestamp(timestamp: str) -> list:
@@ -492,7 +480,8 @@ ATTRIBUTES = {
     "error_code": MetaData(long_name="Error code", units="1"),
     "number_concentration": MetaData(
         long_name="Number of particles per diameter class",
-        units="log10(m-3 mm-1)",
+        comment="Unit is actually logarithmic log10(m-3 mm-1).",
+        units="m-3 mm-1",
     ),
     "fall_velocity": MetaData(
         long_name="Average velocity of each diameter class",

@@ -65,10 +65,13 @@ def find_melting_layer(obs: ClassData, smooth: bool = True) -> np.ndarray:
     for ind, t_prof in enumerate(obs.tw):
 
         temp_indices = _get_temp_indices(t_prof, t_range)
+        if len(temp_indices) <= 1:
+            continue
         z_prof = obs.z[ind, temp_indices]
         v_prof = obs.v[ind, temp_indices]
 
         if ldr_diff is not None:
+            assert hasattr(obs, "ldr")
             ldr_prof = obs.ldr[ind, temp_indices]
             ldr_dprof = ldr_diff[ind, temp_indices]
 

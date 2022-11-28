@@ -111,7 +111,6 @@ class DrizzleProducts:
         """Calculates drizzle liquid water content (kg m-3)"""
         rho_water = 1000
         dia, mu, s = [self._params.get(key) for key in ("Do", "mu", "S")]
-        print(dia, mu, s)
         assert isinstance(mu, np.ndarray)
         assert isinstance(s, np.ndarray)
         assert isinstance(dia, np.ndarray)
@@ -152,7 +151,7 @@ class RetrievalStatus:
 
     def __init__(self, drizzle_class: DrizzleClassification):
         self.drizzle_class = drizzle_class
-        self.retrieval_status = np.array([])
+        self.retrieval_status: np.ndarray = np.array([])
         self._get_retrieval_status()
 
     def _get_retrieval_status(self):

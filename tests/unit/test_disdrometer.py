@@ -3,6 +3,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 from all_products_fun import Check
+from numpy.testing import assert_array_equal
 
 from cloudnetpy.exceptions import ValidTimeStampError
 from cloudnetpy.instruments import disdrometer
@@ -27,7 +28,7 @@ class TestParsivel(Check):
     def test_global_attributes(self):
         assert "Parsivel" in self.nc.source
         assert self.nc.cloudnet_file_type == "disdrometer"
-        assert self.nc.title == "Disdrometer file from Kumpula"
+        assert self.nc.title == f'Parsivel2 disdrometer from {self.site_meta["name"]}'
         assert self.nc.year == "2021"
         assert self.nc.month == "03"
         assert self.nc.day == "18"
@@ -72,9 +73,22 @@ class TestThies(Check):
     uuid = disdrometer.disdrometer2nc(filename, temp_path, site_meta, date=date)
 
     def test_processing(self):
-        assert self.nc.title == "Disdrometer file from Kumpula"
+        assert self.nc.title == f'LNM disdrometer from {self.site_meta["name"]}'
         assert self.nc.year == "2021"
         assert self.nc.month == "09"
         assert self.nc.day == "15"
         assert self.nc.location == "Kumpula"
         assert self.nc.cloudnet_file_type == "disdrometer"
+
+
+class TestInvalidCharacters(Check):
+    temp_dir = TemporaryDirectory()
+    temp_path = temp_dir.name + "/test.nc"
+    filename = f"{SCRIPT_PATH}/data/parsivel/parsivel_bad.log"
+    site_meta = SITE_META
+    date = "2019-04-10"
+    uuid = disdrometer.disdrometer2nc(filename, temp_path, site_meta, date=date)
+
+    def test_masking(self):
+        assert_array_equal(self.nc.variables["rainfall_rate"][:].mask, [0, 1, 0, 0, 0])
+        assert_array_equal(self.nc.variables["n_particles"][:].mask, [0, 0, 0, 0, 0])

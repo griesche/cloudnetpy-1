@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.42.2 – 2022-11-23
+
+- Improve disdrometer product writing
+
+## 1.42.1 – 2022-11-23
+
+- Check for empty time vector
+
+## 1.42.0 – 2022-11-22
+
+- Use `sldr` for insect detection
+- Mask invalid parsivel data values (#68)
+- Fix bug causing IndexError in melting layer detection
+
+## 1.41.2 – 2022-11-20
+
+- Allow scalar variable `nave` values to change between concatenated `mira` files
+
+## 1.41.1 – 2022-11-18
+
+- Fix parsivel `number_concentration` units to pass cfchecks
+
+## 1.41.0 – 2022-11-18
+
+- Migrate model-evalution to cloudnetpy
+
 ## 1.40.0 – 2022-11-17
 
 - Raise ValidTimeStampError from disdrometer processing
